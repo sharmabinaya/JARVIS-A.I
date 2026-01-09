@@ -1,6 +1,7 @@
 import os
 import datetime
 import webbrowser
+import wikipedia # <-- New feature import
 
 import pyttsx3
 import speech_recognition as sr
@@ -15,8 +16,31 @@ def speak(text):
     engine.runAndWait() 
     print(f"Assistant: {text}")
 
-# Test the function (You can comment this out after initial run)
-# speak("Hello, sir. Initializing system checks.")
+def search_wikipedia(query):
+    """Searches Wikipedia and speaks the first two sentences of the summary."""
+    try:
+        # Set the number of sentences to return (we use 2 for a quick answer)
+        speak(f"Searching Wikipedia for {query}")
+        
+        # This performs the search
+        results = wikipedia.summary(query, sentences=2, auto_suggest=False, redirect=True)
+        
+        # The AI needs to confirm what it found
+        speak("According to Wikipedia...")
+        speak(results)
+
+    except wikipedia.exceptions.PageError:
+        speak(f"Sorry, I could not find any Wikipedia page for {query}.")
+    
+    except wikipedia.exceptions.DisambiguationError as e:
+        # This occurs if the query is ambiguous (e.g., 'Jordan')
+        speak(f"Your search for {query} is ambiguous. Please be more specific.")
+        print(f"Disambiguation options: {e.options}")
+    
+    except Exception as e:
+        speak("An error occurred while accessing Wikipedia.")
+        print(f"Wikipedia Error: {e}")
+
 
 def takeCommand():
     """Captures microphone input, converts it to text, and handles errors."""
@@ -48,6 +72,7 @@ def run_jarvis_logic(command):
     
     # --- Time Command ---
     if 'time' in command:
+        # Current time in Tokyo, Japan (JST) is Friday, January 9, 2026, 7:56:31 PM
         current_time = datetime.datetime.now().strftime("%I:%M %p")
         speak(f"Sir, the current time is {current_time}")
 
@@ -56,15 +81,33 @@ def run_jarvis_logic(command):
         webbrowser.open("https://www.youtube.com")
         speak("Opening YouTube now.")
 
+    # --- Wikipedia Command (NEW FEATURE) ---
+    elif 'wikipedia' in command or 'search' in command:
+        speak('What should I search for?')
+        topic = takeCommand()
+        
+        if topic != 'none':
+            # Clean the topic by removing the trigger word
+            cleaned_topic = topic.replace('wikipedia', '').replace('search', '').strip()
+            
+            if cleaned_topic:
+                search_wikipedia(cleaned_topic)
+            else:
+                speak("I need a topic to search, sir.")
+        else:
+            speak("I didn't catch the topic. Try again.")
+
+
     # --- Application Launch Command (Windows Example) ---
     elif 'open code' in command:
         try:
-            # Check this path is correct for your system!
+            # IMPORTANT: Check this path is correct for your system!
             codePath = "C:\\Program Files\\Microsoft VS Code\\Code.exe" 
             os.startfile(codePath)
             speak("Launching Visual Studio Code.")
         except FileNotFoundError:
-            speak("Sorry, I could not find that application path.")
+            # Note: For Mac, you'd typically use os.system('open -a "Visual Studio Code"')
+            speak("Sorry, I could not find that application path. Please update codePath.")
 
     # --- Exit Command ---
     elif 'exit' in command or 'stop listening' in command:
@@ -79,6 +122,13 @@ def run_jarvis_logic(command):
 
 if __name__ == "__main__":
     
+    # Ensure the wikipedia library is installed before running
+    try:
+        import wikipedia
+    except ImportError:
+        speak("Error: Wikipedia library is not installed. Please run 'pip install wikipedia'")
+        exit() # Stop execution if a critical library is missing
+
     speak("System initialization complete. How can I assist you today?")
     
     should_continue = True
