@@ -1,7 +1,7 @@
 import os
 import datetime
 import webbrowser
-import wikipedia # <-- New feature import
+import wikipedia # Core library for Wikipedia lookup
 
 import pyttsx3
 import speech_recognition as sr
@@ -54,6 +54,7 @@ def takeCommand():
 
     try:
         print("Recognizing...")    
+        # Uses Google's API for speech-to-text
         query = r.recognize_google(audio, language='en-US') 
         print(f"User said: {query}")
 
@@ -70,13 +71,12 @@ def takeCommand():
 def run_jarvis_logic(command):
     """Executes an action based on the recognized command."""
     
-    # --- Time Command ---
+    # --- Time Command (PREVIOUS FEATURE) ---
     if 'time' in command:
-        # Current time in Tokyo, Japan (JST) is Friday, January 9, 2026, 7:56:31 PM
         current_time = datetime.datetime.now().strftime("%I:%M %p")
         speak(f"Sir, the current time is {current_time}")
 
-    # --- Web Browser Command ---
+    # --- Web Browser Command (PREVIOUS FEATURE) ---
     elif 'open youtube' in command:
         webbrowser.open("https://www.youtube.com")
         speak("Opening YouTube now.")
@@ -98,36 +98,36 @@ def run_jarvis_logic(command):
             speak("I didn't catch the topic. Try again.")
 
 
-    # --- Application Launch Command (Windows Example) ---
+    # --- Application Launch Command (PREVIOUS FEATURE) ---
     elif 'open code' in command:
         try:
-            # IMPORTANT: Check this path is correct for your system!
+            # IMPORTANT: For Mac, a common command is: os.system('open -a "Visual Studio Code"')
+            # You currently have a Windows path. Please update this line for your macOS machine:
             codePath = "C:\\Program Files\\Microsoft VS Code\\Code.exe" 
-            os.startfile(codePath)
+            os.startfile(codePath) 
             speak("Launching Visual Studio Code.")
         except FileNotFoundError:
-            # Note: For Mac, you'd typically use os.system('open -a "Visual Studio Code"')
-            speak("Sorry, I could not find that application path. Please update codePath.")
+            speak("Sorry, I could not find that application path. Please update the path for your operating system.")
 
-    # --- Exit Command ---
+    # --- Exit Command (PREVIOUS FEATURE) ---
     elif 'exit' in command or 'stop listening' in command:
         speak("Understood. System shutting down. Goodbye.")
         return False 
     
     # --- Default/Fallback Response ---
     else:
-        speak("I am sorry, I am currently programmed only for basic time and application commands.")
+        speak("I am sorry, I am currently programmed only for basic time, search, and application commands.")
 
     return True 
 
 if __name__ == "__main__":
     
-    # Ensure the wikipedia library is installed before running
+    # Critical check: ensure the wikipedia library is installed
     try:
         import wikipedia
     except ImportError:
-        speak("Error: Wikipedia library is not installed. Please run 'pip install wikipedia'")
-        exit() # Stop execution if a critical library is missing
+        speak("CRITICAL ERROR: Wikipedia library is not installed. Please run 'pip install wikipedia'")
+        exit() 
 
     speak("System initialization complete. How can I assist you today?")
     
